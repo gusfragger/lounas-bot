@@ -1,15 +1,17 @@
 {
+  "name": "lounas-bot",
+  "version": "1.0.0",
+  "engines": {
+    "node": "18.x"
+  },
   "dependencies": {
     "@slack/bolt": "^3.12.1",
     "axios": "^1.1.2",
     "cheerio": "^1.0.0",
     "dotenv": "^16.0.3",
-    "ngrok": "^4.3.3",
-    "node-schedule": "^2.1.1",
-    "nodemon": "^3.1.7"
-  }
-}
-{
+    "express": "^4.17.1",
+    "node-schedule": "^2.1.1"
+  },
   "scripts": {
     "start": "node index.js"
   }
