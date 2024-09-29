@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "@slack/bolt": "^3.12.1",
+    "axios": "^1.1.2",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.0.3",
+    "ngrok": "^4.3.3",
+    "node-schedule": "^2.1.1",
+    "nodemon": "^3.1.7"
+  }
+}
+{
+  "scripts": {
+    "start": "node index.js"
+  }
+}
