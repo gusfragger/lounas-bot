@@ -1,5 +1,6 @@
-const { App } = require("@slack/bolt");
+const { App, ExpressReceiver } = require("@slack/bolt");
 require("dotenv").config();
+const express = require('express');
 
 const { scrapeMenu } = require("./scraper");
 const { buildLunchMessage } = require("./messageBuilder");
@@ -9,19 +10,26 @@ const restaurants = require("../config/restaurants");
 
 console.log("Modules imported successfully");
 
-const app = new App({
-  token: process.env.SLACK_BOT_TOKEN,
+const receiver = new ExpressReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
+  processBeforeResponse: true,
 });
 
-(async () => {
-  try {
-    await app.start(process.env.PORT || 3000);
-    console.log("Lunch bot is running on port", process.env.PORT || 3000);
-  } catch (error) {
-    console.error("Failed to start the app:", error);
-  }
-})();
+const app = new App({
+  token: process.env.SLACK_BOT_TOKEN,
+  receiver: receiver
+});
+
+receiver.router.post('/slack/events', (req, res) => {
+  receiver.requestHandler(req, res);
+});
+
+receiver.router.post('/slack/interactions', (req, res) => {
+  receiver.requestHandler(req, res);
+});
+receiver.router.get('/health', (_, res) => {
+  res.status(200).send('OK');
+});
 
 console.log("Slack app initialized");
 
@@ -49,18 +57,14 @@ scheduleDaily(postLunchMessage);
 
 app.action(/^vote_/, async ({ ack, body, client }) => {
   console.log("Vote action received");
-
-  // Acknowledge immediately
   await ack();
   console.log("Vote action acknowledged");
 
   try {
-    // Process the vote after acknowledgment
     await handleVote({ body, client });
     console.log("Vote processed successfully");
   } catch (error) {
     console.error("Error processing vote:", error);
-    // Optionally, send an error message to the user
     try {
       await client.chat.postEphemeral({
         channel: body.channel.id,
@@ -85,3 +89,12 @@ app.command("/post-lunch", async ({ ack, respond, command }) => {
     await respond("There was an error processing the lunch message.");
   }
 });
+
+(async () => {
+  try {
+    await app.start(process.env.PORT || 3000);
+    console.log("Lunch bot is running on port", process.env.PORT || 3000);
+  } catch (error) {
+    console.error("Failed to start the app:", error);
+  }
+})();
