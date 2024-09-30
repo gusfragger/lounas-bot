@@ -1,6 +1,6 @@
 const { App, ExpressReceiver } = require("@slack/bolt");
 require("dotenv").config();
-const express = require('express');
+const express = require("express");
 
 const { scrapeMenu } = require("./scraper");
 const { buildLunchMessage } = require("./messageBuilder");
@@ -17,18 +17,18 @@ const receiver = new ExpressReceiver({
 
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
-  receiver: receiver
+  receiver: receiver,
 });
 
-receiver.router.post('/slack/events', (req, res) => {
+receiver.router.post("/slack/events", (req, res) => {
   receiver.requestHandler(req, res);
 });
 
-receiver.router.post('/slack/interactions', (req, res) => {
+receiver.router.post("/slack/events", (req, res) => {
   receiver.requestHandler(req, res);
 });
-receiver.router.get('/health', (_, res) => {
-  res.status(200).send('OK');
+receiver.router.get("/healthz", (_, res) => {
+  res.status(200).send("OK");
 });
 
 console.log("Slack app initialized");
