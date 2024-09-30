@@ -22,16 +22,10 @@ const app = new App({
   receiver: receiver,
 });
 
-// Define separate routes for events and interactions
 receiver.router.post("/slack/events", (req, res) => {
   receiver.requestHandler(req, res);
 });
 
-receiver.router.post("/slack/interactions", (req, res) => {
-  receiver.requestHandler(req, res);
-});
-
-// Add a simple health check route
 receiver.router.get("/health", (_, res) => {
   res.status(200).send("OK");
 });
@@ -60,27 +54,15 @@ async function postLunchMessage() {
 
 scheduleDaily(postLunchMessage);
 
-app.action(/.*vote_.*/, async ({ ack, body, client }) => {
-  console.log("Vote action received");
-
-  // Acknowledge immediately
-  await ack();
-  console.log("Vote action acknowledged");
-
+app.action("vote_", async ({ ack, body, client }) => {
+  console.log("Vote action received", JSON.stringify(body, null, 2));
   try {
+    await ack();
+    console.log("Vote acknowledged");
     await handleVote({ body, client });
-    console.log("Vote processed successfully");
+    console.log("Vote handled");
   } catch (error) {
-    console.error("Error processing vote:", error);
-    try {
-      await client.chat.postEphemeral({
-        channel: body.channel.id,
-        user: body.user.id,
-        text: "Sorry, there was an error processing your vote. Please try again.",
-      });
-    } catch (chatError) {
-      console.error("Error sending error message to user:", chatError);
-    }
+    console.error("Error in vote action:", error);
   }
 });
 
@@ -97,7 +79,6 @@ app.command("/post-lunch", async ({ ack, respond, command }) => {
   }
 });
 
-// Start the app
 (async () => {
   try {
     await app.start(process.env.PORT || 3000);
