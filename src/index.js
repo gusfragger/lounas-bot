@@ -10,24 +10,29 @@ const restaurants = require("../config/restaurants");
 
 console.log("Modules imported successfully");
 
+// Initialize the custom receiver
 const receiver = new ExpressReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
   processBeforeResponse: true,
 });
 
+// Create the Bolt app with the custom receiver
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   receiver: receiver,
 });
 
+// Define separate routes for events and interactions
 receiver.router.post("/slack/events", (req, res) => {
   receiver.requestHandler(req, res);
 });
 
-receiver.router.post("/slack/events", (req, res) => {
+receiver.router.post("/slack/interactions", (req, res) => {
   receiver.requestHandler(req, res);
 });
-receiver.router.get("/healthz", (_, res) => {
+
+// Add a simple health check route
+receiver.router.get("/health", (_, res) => {
   res.status(200).send("OK");
 });
 
@@ -55,8 +60,10 @@ async function postLunchMessage() {
 
 scheduleDaily(postLunchMessage);
 
-app.action(/^vote_/, async ({ ack, body, client }) => {
+app.action(/.*vote_.*/, async ({ ack, body, client }) => {
   console.log("Vote action received");
+
+  // Acknowledge immediately
   await ack();
   console.log("Vote action acknowledged");
 
@@ -90,6 +97,7 @@ app.command("/post-lunch", async ({ ack, respond, command }) => {
   }
 });
 
+// Start the app
 (async () => {
   try {
     await app.start(process.env.PORT || 3000);
