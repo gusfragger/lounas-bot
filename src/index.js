@@ -49,6 +49,7 @@ async function handleCommand(payload) {
 }
 
 async function handleInteractiveMessage(payload) {
+  console.log("handleInteractiveMessage called");
   await handleVote(payload);
 }
 
