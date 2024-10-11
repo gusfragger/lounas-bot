@@ -21,15 +21,19 @@ const app = new App({
 });
 
 receiver.router.post("/slack/events", async (req, res) => {
-  // Acknowledge the request immediately
+  const { type, payload } = req.body;
+  if (type === "command") {
+    await handleCommand(payload);
+  }
   res.ack();
+});
 
-  // Process the request
+receiver.router.post("/slack/interactive", async (req, res) => {
   const { type, payload } = req.body;
   if (type === "interactive_message") {
-    // Handle the interactive message
     await handleInteractiveMessage(payload);
   }
+  res.ack();
 });
 
 receiver.router.get("/health", (_, res) => {
@@ -37,6 +41,16 @@ receiver.router.get("/health", (_, res) => {
 });
 
 console.log("Slack app initialized");
+
+async function handleCommand(payload) {
+  if (payload.command === "/post-lunch") {
+    await postLunchMessage();
+  }
+}
+
+async function handleInteractiveMessage(payload) {
+  await handleVote(payload);
+}
 
 async function postLunchMessage() {
   const menus = await Promise.all(

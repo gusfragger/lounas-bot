@@ -1,21 +1,20 @@
-async function handleVote({ body, client }) {
-  await ack();
-  const userId = body.user.id;
-  const restaurantName = body.actions[0].value.replace("vote_", "");
+async function handleVote(payload) {
+  const userId = payload.user.id;
+  const restaurantName = payload.actions[0].value.replace("vote_", "");
 
   console.log(`Processing vote: User ${userId} voted for ${restaurantName}`);
 
   try {
     const messagePayload = {
-      channel: body.channel.id,
+      channel: payload.channel.id,
       text: `<@${userId}> voted for ${restaurantName}!`,
     };
 
-    if (body.message && body.message.ts) {
-      messagePayload.thread_ts = body.message.ts;
+    if (payload.message && payload.message.ts) {
+      messagePayload.thread_ts = payload.message.ts;
     }
 
-    await client.chat.postMessage(messagePayload);
+    await app.client.chat.postMessage(messagePayload);
     console.log("Vote message posted successfully");
   } catch (error) {
     console.error("Error posting vote message:", error);
@@ -24,22 +23,3 @@ async function handleVote({ body, client }) {
 }
 
 module.exports = { handleVote };
-
-async function processVote(body, client) {
-  const userId = body.user.id;
-  const restaurantName = body.actions[0].value.replace("vote_", "");
-
-  console.log(`Processing vote: User ${userId} voted for ${restaurantName}`);
-
-  const messagePayload = {
-    channel: body.channel.id,
-    text: `<@${userId}> voted for ${restaurantName}!`,
-  };
-
-  if (body.message && body.message.ts) {
-    messagePayload.thread_ts = body.message.ts;
-  }
-
-  await client.chat.postMessage(messagePayload);
-  console.log("Vote message posted successfully");
-}
