@@ -10,13 +10,11 @@ const restaurants = require("../config/restaurants");
 
 console.log("Modules imported successfully");
 
-// Initialize the custom receiver
 const receiver = new ExpressReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
-  processBeforeResponse: true,
+  processBeforeResponse: false,
 });
 
-// Create the Bolt app with the custom receiver
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   receiver: receiver,
@@ -66,7 +64,6 @@ app.action("vote_", async ({ ack, body, client }) => {
   }
 });
 
-// Development command to manually post lunch message
 app.command("/post-lunch", async ({ ack, respond, command }) => {
   try {
     console.log("Received /post-lunch command from:", command.user_name);

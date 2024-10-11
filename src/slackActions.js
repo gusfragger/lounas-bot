@@ -1,4 +1,5 @@
 async function handleVote({ body, client }) {
+  await ack();
   const userId = body.user.id;
   const restaurantName = body.actions[0].value.replace("vote_", "");
 
