@@ -20,8 +20,16 @@ const app = new App({
   receiver: receiver,
 });
 
-receiver.router.post("/slack/events", (req, res) => {
-  receiver.requestHandler(req, res);
+receiver.router.post("/slack/events", async (req, res) => {
+  // Acknowledge the request immediately
+  res.ack();
+
+  // Process the request
+  const { type, payload } = req.body;
+  if (type === "interactive_message") {
+    // Handle the interactive message
+    await handleInteractiveMessage(payload);
+  }
 });
 
 receiver.router.get("/health", (_, res) => {
