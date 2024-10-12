@@ -11,12 +11,22 @@ const receiver = new ExpressReceiver({
   processBeforeResponse: true,
 });
 
-receiver.router.use(express.json());
+const app = receiver.app;
 
-const app = new App({
+receiver.router.get("/ping", (req, res) => {
+  console.log("Ping request received");
+  const start = process.hrtime();
+  res.send("pong");
+  const end = process.hrtime(start);
+  console.log(`Ping processed in ${end[0]}s ${end[1] / 1000000}ms`);
+});
+
+const slackapp = new App({
   token: process.env.SLACK_BOT_TOKEN,
   receiver: receiver,
 });
+
+receiver.router.use(express.json());
 
 receiver.router.use((req, res, next) => {
   console.log(`Request received at: ${Date.now()}`);
@@ -27,14 +37,6 @@ receiver.router.use((req, res, next) => {
 receiver.router.use((req, res) => {
   console.log(`No route found for ${req.method} ${req.url}`);
   res.status(404).send("Not Found");
-});
-
-receiver.router.get("/ping", (req, res) => {
-  console.log("Ping request received");
-  const start = process.hrtime();
-  res.send("pong");
-  const end = process.hrtime(start);
-  console.log(`Ping processed in ${end[0]}s ${end[1] / 1000000}ms`);
 });
 
 async function postLunchMessage() {
@@ -100,10 +102,15 @@ app.action(/vote_.*/, async ({ action, ack, say, body }) => {
   }
 });
 
+slackApp.error(async (error) => {
+  console.error("An error occurred:", error);
+});
+
+const port = process.env.PORT || 3000;
 (async () => {
   try {
-    await app.start(process.env.PORT || 3000);
-    console.log("⚡️ Bolt app is running on port", process.env.PORT || 3000);
+    await slackApp.start(port);
+    console.log(`⚡️ Bolt app is running on port ${port}`);
   } catch (error) {
     console.error("Failed to start the app:", error);
   }
