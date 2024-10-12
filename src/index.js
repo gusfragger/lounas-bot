@@ -28,7 +28,8 @@ receiver.router.post("/slack/events", async (req, res) => {
   res.ack();
 });
 
-receiver.router.post("/slack/interactive", async (req, res) => {
+receiver.router.post("/slack/interactive-endpoint", async (req, res) => {
+  console.log(req.body);
   const { type, payload } = req.body;
   if (type === "interactive_message") {
     await handleInteractiveMessage(payload);
@@ -74,18 +75,6 @@ async function postLunchMessage() {
 }
 
 scheduleDaily(postLunchMessage);
-
-app.action("vote_", async ({ ack, body, client }) => {
-  console.log("Vote action received", JSON.stringify(body, null, 2));
-  try {
-    await ack();
-    console.log("Vote acknowledged");
-    await handleVote({ body, client });
-    console.log("Vote handled");
-  } catch (error) {
-    console.error("Error in vote action:", error);
-  }
-});
 
 app.command("/post-lunch", async ({ ack, respond, command }) => {
   try {
