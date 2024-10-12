@@ -58,10 +58,12 @@ app.command("/post-lunch", async ({ ack, respond, command }) => {
   }
 });
 
-app.action(/vote_.*/, async ({ action, ack, say, body, client }) => {
+app.action(/vote_.*/, async ({ action, ack, say, body }) => {
+  const startTime = Date.now();
   try {
     await ack();
     console.log(`Action acknowledged at: ${Date.now() - startTime}ms`);
+
     console.log("Action received:", action);
     const userId = body.user.id;
     const restaurantName = action.value.replace("vote_", "");
@@ -71,13 +73,15 @@ app.action(/vote_.*/, async ({ action, ack, say, body, client }) => {
       }ms`
     );
 
-    const result = await client.chat.postMessage({
-      channel: body.channel.id,
+    await say({
       text: `<@${userId}> voted for ${restaurantName}!`,
       thread_ts: body.message.ts,
     });
 
-    console.log("Vote message posted successfully:", result);
+    console.log(
+      "Vote message posted successfully at:",
+      `${Date.now() - startTime}ms`
+    );
   } catch (error) {
     console.error("Error handling action:", error);
   }
