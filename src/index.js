@@ -16,8 +16,10 @@ const app = new App({
 
 receiver.router.use((req, res, next) => {
   console.log(`Request received at: ${Date.now()}`);
+  console.log(`Request headers: ${JSON.stringify(req.headers)}`);
   next();
 });
+
 
 receiver.router.post("/slack/events", async (req, res) => {
   console.log("Event received:", req.body);
