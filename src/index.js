@@ -1,11 +1,11 @@
 const { App, ExpressReceiver } = require("@slack/bolt");
 require("dotenv").config();
-const express = require("express");
 
 const { scrapeMenu } = require("./scraper");
 const { buildLunchMessage } = require("./messageBuilder");
 const { scheduleDaily } = require("./scheduler");
 const { handleVote } = require("./slackActions");
+const { handleCommand } = require("./slackActions");
 const restaurants = require("../config/restaurants");
 
 console.log("Modules imported successfully");
@@ -22,18 +22,21 @@ const app = new App({
 
 receiver.router.post("/slack/events", async (req, res) => {
   console.log("Received POST request at /slack/events");
+  console.log("Request body:", req.body);
+
   const { type, payload } = req.body;
 
-  if (type === 'url_verification') {
+  if (type === "url_verification") {
     console.log("Responding to Slack URL verification challenge");
     res.send(req.body.challenge);
     return;
   }
 
-  res.sendStatus(200); 
+  res.sendStatus(200);
   if (type === "command") {
     await handleCommand(payload);
   }
+});
 
 receiver.router.post("/slack/interactive", async (req, res) => {
   console.log("Received POST request at /slack/interactive");
@@ -45,23 +48,11 @@ receiver.router.post("/slack/interactive", async (req, res) => {
     return;
   }
 
-  const { type, payload } = req.body;
-  if (type === "interactive_message") {
-    console.log("Handling interactive message");
-    await handleInteractiveMessage(payload);
-  } else {
-    console.error("Unexpected interactive message type:", type);
-  }
+  const { payload } = req.body;
+  await handleInteractiveMessage(payload);
+
   res.sendStatus(200);
 });
-
-console.log("Slack app initialized");
-
-async function handleCommand(payload) {
-  if (payload.command === "/post-lunch") {
-    await postLunchMessage();
-  }
-}
 
 async function handleInteractiveMessage(payload) {
   console.log("handleInteractiveMessage called");
