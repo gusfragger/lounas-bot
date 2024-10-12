@@ -31,12 +31,9 @@ receiver.router.use((req, res) => {
   res.status(404).send("Not Found");
 });
 
-receiver.router.get("/ping", (req, res) => {
+expressApp.get("/ping", (req, res) => {
   console.log("Ping request received");
-  const start = process.hrtime();
   res.send("pong");
-  const end = process.hrtime(start);
-  console.log(`Ping processed in ${end[0]}s ${end[1] / 1000000}ms`);
 });
 
 async function postLunchMessage() {
@@ -74,32 +71,32 @@ slackApp.command("/post-lunch", async ({ ack, respond, command }) => {
 });
 
 slackApp.action(/vote_.*/, async ({ action, ack, say, body }) => {
-  const startTime = process.hrtime();
-  try {
-    console.log(`Action received at: ${Date.now()}`);
-    await ack();
-    console.log(`Action acknowledged at: ${Date.now() - startTime}ms`);
-    console.log("Action received:", action);
-    const userId = body.user.id;
-    const restaurantName = action.value.replace("vote_", "");
-    console.log(
-      `Processing vote: User ${userId} voted for ${restaurantName} at: ${
-        Date.now() - startTime
-      }ms`
-    );
+  await ack();
+  const processVote = async () => {
+    const startTime = process.hrtime();
+    try {
+      console.log(`Action received at: ${Date.now()}`);
+      console.log("Action received:", action);
+      const userId = body.user.id;
+      const restaurantName = action.value.replace("vote_", "");
+      console.log(
+        `Processing vote: User ${userId} voted for ${restaurantName}`
+      );
 
-    await say({
-      text: `<@${userId}> voted for ${restaurantName}!`,
-      thread_ts: body.message.ts,
-    });
+      await say({
+        text: `<@${userId}> voted for ${restaurantName}!`,
+        thread_ts: body.message.ts,
+      });
 
-    console.log(
-      "Vote message posted successfully at:",
-      `${Date.now() - startTime}ms`
-    );
-  } catch (error) {
-    console.error("Error handling action:", error);
-  }
+      const end = process.hrtime(startTime);
+      console.log(
+        `Vote message posted successfully in ${end[0]}s ${end[1] / 1000000}ms`
+      );
+    } catch (error) {
+      console.error("Error handling action:", error);
+    }
+  };
+  processVote();
 });
 
 slackApp.error(async (error) => {
