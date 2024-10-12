@@ -15,6 +15,8 @@ const receiver = new ExpressReceiver({
   processBeforeResponse: false,
 });
 
+receiver.router.use(express.json());
+
 const app = new App({
   token: process.env.SLACK_BOT_TOKEN,
   receiver: receiver,
