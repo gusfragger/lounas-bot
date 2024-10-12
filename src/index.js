@@ -42,7 +42,13 @@ receiver.router.post("/slack/events", async (req, res) => {
 
 receiver.router.post("/slack/interactive", async (req, res) => {
   console.log("Received POST request at /slack/interactive");
-  console.log("Request body:", req.body);
+  console.log("Raw request body:", req.body);
+
+  if (!req.body) {
+    console.error("Request body is undefined");
+    res.sendStatus(400);
+    return;
+  }
 
   if (req.body.type === "url_verification") {
     console.log("Responding to Slack URL verification challenge");
@@ -51,6 +57,7 @@ receiver.router.post("/slack/interactive", async (req, res) => {
   }
 
   const { payload } = req.body;
+  console.log("Parsed payload:", payload);
   await handleInteractiveMessage(payload);
 
   res.sendStatus(200);
