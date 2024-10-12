@@ -25,7 +25,10 @@ receiver.router.use((req, res, next) => {
 });
 
 receiver.router.get("/ping", (req, res) => {
+  const start = process.hrtime();
   res.send("pong");
+  const end = process.hrtime(start);
+  console.log(`Ping processed in ${end[0]}s ${end[1] / 1000000}ms`);
 });
 
 async function postLunchMessage() {
