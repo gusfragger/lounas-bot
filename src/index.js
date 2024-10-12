@@ -52,7 +52,7 @@ async function postLunchMessage() {
   const message = buildLunchMessage(menus);
   console.log("Message to be posted:", message);
 
-  await app.client.chat.postMessage({
+  await slackApp.client.chat.postMessage({
     channel: process.env.LUNCH_CHANNEL_ID,
     text: "Here are today's lunch menus",
     blocks: message.blocks,
