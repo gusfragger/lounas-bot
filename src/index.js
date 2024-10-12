@@ -4,7 +4,6 @@ require("dotenv").config();
 const { scrapeMenu } = require("./scraper");
 const { buildLunchMessage } = require("./messageBuilder");
 const { scheduleDaily } = require("./scheduler");
-const { handleVote } = require("./slackActions");
 const restaurants = require("../config/restaurants");
 
 const receiver = new ExpressReceiver({
@@ -62,11 +61,15 @@ app.command("/post-lunch", async ({ ack, respond, command }) => {
 app.action(/vote_.*/, async ({ action, ack, say, body, client }) => {
   try {
     await ack();
+    console.log(`Action acknowledged at: ${Date.now() - startTime}ms`);
     console.log("Action received:", action);
     const userId = body.user.id;
     const restaurantName = action.value.replace("vote_", "");
-
-    console.log(`Processing vote: User ${userId} voted for ${restaurantName}`);
+    console.log(
+      `Processing vote: User ${userId} voted for ${restaurantName} at: ${
+        Date.now() - startTime
+      }ms`
+    );
 
     const result = await client.chat.postMessage({
       channel: body.channel.id,
