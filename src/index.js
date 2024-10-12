@@ -16,10 +16,8 @@ const app = new App({
 
 receiver.router.use((req, res, next) => {
   console.log(`Request received at: ${Date.now()}`);
-  console.log(`Request headers: ${JSON.stringify(req.headers)}`);
   next();
 });
-
 
 receiver.router.post("/slack/events", async (req, res) => {
   console.log("Event received:", req.body);
@@ -45,22 +43,14 @@ receiver.router.post("/slack/interactive", async (req, res) => {
 
     const { payload } = req.body;
     console.log("Parsed payload:", payload);
-    await handleInteractiveMessage(payload);
+    await handleVote(payload);
 
-    res.sendStatus(200); 
+    res.sendStatus(200);
   } catch (error) {
     console.error("Error handling /slack/interactive request:", error);
     res.sendStatus(500);
-});
-
-async function handleInteractiveMessage(payload) {
-  console.log("handleInteractiveMessage called with payload:", payload);
-  if (payload.actions && payload.actions[0].value.startsWith("vote_")) {
-    await handleVote(payload);
-  } else {
-    console.error("Unexpected action value:", payload.actions[0].value);
   }
-}
+});
 
 async function handleVote(payload) {
   try {
@@ -83,10 +73,9 @@ async function handleVote(payload) {
     console.log("Vote message posted successfully");
   } catch (error) {
     console.error("Error posting vote message:", error);
-    throw error; 
+    throw error;
   }
 }
-
 
 (async () => {
   try {
