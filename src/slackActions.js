@@ -18,7 +18,7 @@ async function handleVote(payload) {
     console.log("Vote message posted successfully");
   } catch (error) {
     console.error("Error posting vote message:", error);
-    throw error; // Rethrow the error to be caught in the main handler
+    throw error;
   }
 }
 

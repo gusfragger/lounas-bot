@@ -21,24 +21,38 @@ const app = new App({
 });
 
 receiver.router.post("/slack/events", async (req, res) => {
+  console.log("Received POST request at /slack/events");
   const { type, payload } = req.body;
+
+  if (type === 'url_verification') {
+    console.log("Responding to Slack URL verification challenge");
+    res.send(req.body.challenge);
+    return;
+  }
+
+  res.sendStatus(200); 
   if (type === "command") {
     await handleCommand(payload);
   }
-  res.ack();
-});
 
-receiver.router.post("/slack/interactive-endpoint", async (req, res) => {
-  console.log(req.body);
+receiver.router.post("/slack/interactive", async (req, res) => {
+  console.log("Received POST request at /slack/interactive");
+  console.log("Request body:", req.body);
+
+  if (req.body.type === "url_verification") {
+    console.log("Responding to Slack URL verification challenge");
+    res.send(req.body.challenge);
+    return;
+  }
+
   const { type, payload } = req.body;
   if (type === "interactive_message") {
+    console.log("Handling interactive message");
     await handleInteractiveMessage(payload);
+  } else {
+    console.error("Unexpected interactive message type:", type);
   }
-  res.ack();
-});
-
-receiver.router.get("/health", (_, res) => {
-  res.status(200).send("OK");
+  res.sendStatus(200);
 });
 
 console.log("Slack app initialized");
@@ -51,7 +65,11 @@ async function handleCommand(payload) {
 
 async function handleInteractiveMessage(payload) {
   console.log("handleInteractiveMessage called");
-  await handleVote(payload);
+  if (payload.actions && payload.actions[0].value.startsWith("vote_")) {
+    await handleVote(payload);
+  } else {
+    console.error("Unexpected action value:", payload.actions[0].value);
+  }
 }
 
 async function postLunchMessage() {
