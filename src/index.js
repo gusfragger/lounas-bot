@@ -11,17 +11,9 @@ const receiver = new ExpressReceiver({
   processBeforeResponse: true,
 });
 
-const app = receiver.app;
+const expressApp = receiver.app;
 
-receiver.router.get("/ping", (req, res) => {
-  console.log("Ping request received");
-  const start = process.hrtime();
-  res.send("pong");
-  const end = process.hrtime(start);
-  console.log(`Ping processed in ${end[0]}s ${end[1] / 1000000}ms`);
-});
-
-const slackapp = new App({
+const slackApp = new App({
   token: process.env.SLACK_BOT_TOKEN,
   receiver: receiver,
 });
@@ -37,6 +29,14 @@ receiver.router.use((req, res, next) => {
 receiver.router.use((req, res) => {
   console.log(`No route found for ${req.method} ${req.url}`);
   res.status(404).send("Not Found");
+});
+
+receiver.router.get("/ping", (req, res) => {
+  console.log("Ping request received");
+  const start = process.hrtime();
+  res.send("pong");
+  const end = process.hrtime(start);
+  console.log(`Ping processed in ${end[0]}s ${end[1] / 1000000}ms`);
 });
 
 async function postLunchMessage() {
@@ -61,7 +61,7 @@ async function postLunchMessage() {
 
 scheduleDaily(postLunchMessage);
 
-app.command("/post-lunch", async ({ ack, respond, command }) => {
+slackApp.command("/post-lunch", async ({ ack, respond, command }) => {
   try {
     console.log("Received /post-lunch command from:", command.user_name);
     await ack();
@@ -73,7 +73,7 @@ app.command("/post-lunch", async ({ ack, respond, command }) => {
   }
 });
 
-app.action(/vote_.*/, async ({ action, ack, say, body }) => {
+slackApp.action(/vote_.*/, async ({ action, ack, say, body }) => {
   const startTime = process.hrtime();
   try {
     console.log(`Action received at: ${Date.now()}`);
