@@ -24,7 +24,13 @@ receiver.router.use((req, res, next) => {
   next();
 });
 
+receiver.router.use((req, res) => {
+  console.log(`No route found for ${req.method} ${req.url}`);
+  res.status(404).send("Not Found");
+});
+
 receiver.router.get("/ping", (req, res) => {
+  console.log("Ping request received");
   const start = process.hrtime();
   res.send("pong");
   const end = process.hrtime(start);
