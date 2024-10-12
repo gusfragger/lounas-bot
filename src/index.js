@@ -1,6 +1,11 @@
 const { App, ExpressReceiver } = require("@slack/bolt");
 const express = require("express");
 require("dotenv").config();
+const { scrapeMenu } = require("./scraper");
+const { buildLunchMessage } = require("./messageBuilder");
+const { scheduleDaily } = require("./scheduler");
+const { handleVote } = require("./slackActions");
+const restaurants = require("../config/restaurants");
 
 const receiver = new ExpressReceiver({
   signingSecret: process.env.SLACK_SIGNING_SECRET,
@@ -16,66 +21,64 @@ const app = new App({
 
 receiver.router.use((req, res, next) => {
   console.log(`Request received at: ${Date.now()}`);
+  console.log(`Request headers: ${JSON.stringify(req.headers)}`);
   next();
 });
 
-receiver.router.post("/slack/events", async (req, res) => {
-  console.log("Event received:", req.body);
-  res.sendStatus(200);
-});
+async function postLunchMessage() {
+  const menus = await Promise.all(
+    Object.entries(restaurants).map(async ([name, url]) => {
+      const encodedUrl = encodeURI(url);
+      const menu = await scrapeMenu(name, encodedUrl);
+      console.log(`Menu for ${name}:`, menu);
+      return { name, menu };
+    })
+  );
 
-receiver.router.post("/slack/interactive", async (req, res) => {
+  const message = buildLunchMessage(menus);
+  console.log("Message to be posted:", message);
+
+  await app.client.chat.postMessage({
+    channel: process.env.LUNCH_CHANNEL_ID,
+    text: "Here are today's lunch menus",
+    blocks: message.blocks,
+  });
+}
+
+scheduleDaily(postLunchMessage);
+
+app.command("/post-lunch", async ({ ack, respond, command }) => {
   try {
-    console.log("Received POST request at /slack/interactive");
-    console.log("Raw request body:", req.body);
-
-    if (!req.body) {
-      console.error("Request body is undefined");
-      res.sendStatus(400);
-      return;
-    }
-
-    if (req.body.type === "url_verification") {
-      console.log("Responding to Slack URL verification challenge");
-      res.send(req.body.challenge);
-      return;
-    }
-
-    const { payload } = req.body;
-    console.log("Parsed payload:", payload);
-    await handleVote(payload);
-
-    res.sendStatus(200);
+    console.log("Received /post-lunch command from:", command.user_name);
+    await ack();
+    await postLunchMessage();
+    await respond("Lunch message posted manually.");
   } catch (error) {
-    console.error("Error handling /slack/interactive request:", error);
-    res.sendStatus(500);
+    console.error("Error in /post-lunch command:", error);
+    await respond("There was an error processing the lunch message.");
   }
 });
 
-async function handleVote(payload) {
+app.action(/vote_.*/, async ({ action, ack, say, body, client }) => {
   try {
-    console.log("handleVote called with payload:", payload);
-    const userId = payload.user.id;
-    const restaurantName = payload.actions[0].value.replace("vote_", "");
+    await ack();
+    console.log("Action received:", action);
+    const userId = body.user.id;
+    const restaurantName = action.value.replace("vote_", "");
+
     console.log(`Processing vote: User ${userId} voted for ${restaurantName}`);
 
-    const messagePayload = {
-      channel: payload.channel.id,
+    const result = await client.chat.postMessage({
+      channel: body.channel.id,
       text: `<@${userId}> voted for ${restaurantName}!`,
-    };
+      thread_ts: body.message.ts,
+    });
 
-    if (payload.message && payload.message.ts) {
-      messagePayload.thread_ts = payload.message.ts;
-    }
-
-    console.log("Posting vote message:", messagePayload);
-    await app.client.chat.postMessage(messagePayload);
-    console.log("Vote message posted successfully");
+    console.log("Vote message posted successfully:", result);
   } catch (error) {
-    console.error("Error posting vote message:", error);
-    throw error;
+    console.error("Error handling action:", error);
   }
-}
+});
 
 (async () => {
   try {
