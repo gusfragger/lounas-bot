@@ -24,6 +24,10 @@ receiver.router.use((req, res, next) => {
   next();
 });
 
+receiver.router.get("/ping", (req, res) => {
+  res.send("pong");
+});
+
 async function postLunchMessage() {
   const menus = await Promise.all(
     Object.entries(restaurants).map(async ([name, url]) => {
@@ -59,11 +63,11 @@ app.command("/post-lunch", async ({ ack, respond, command }) => {
 });
 
 app.action(/vote_.*/, async ({ action, ack, say, body }) => {
-  const startTime = Date.now();
+  const startTime = process.hrtime();
   try {
+    console.log(`Action received at: ${Date.now()}`);
     await ack();
     console.log(`Action acknowledged at: ${Date.now() - startTime}ms`);
-
     console.log("Action received:", action);
     const userId = body.user.id;
     const restaurantName = action.value.replace("vote_", "");
