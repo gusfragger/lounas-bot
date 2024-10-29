@@ -78,7 +78,7 @@ slackApp.action("vote", async ({ action, ack, say, body }) => {
       console.log(`Action received at: ${Date.now()}`);
       console.log("Action received:", action);
       const userId = body.user.id;
-      const restaurantName = action.restaurant;
+      const restaurantName = action.action_id;
       console.log(
         `Processing vote: User ${userId} voted for ${restaurantName}`
       );
