@@ -70,7 +70,7 @@ slackApp.command("/post-lunch", async ({ ack, respond, command }) => {
   }
 });
 
-slackApp.action("vote", async ({ action, ack, say, body }) => {
+slackApp.action(/vote_.*/, async ({ action, ack, say, body }) => {
   console.log("Action received:", action);
   await ack();
   const processVote = async () => {
