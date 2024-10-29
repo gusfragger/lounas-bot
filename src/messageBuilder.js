@@ -21,7 +21,6 @@ function buildLunchMessage(menus) {
         "https://lh3.googleusercontent.com/p/AF1QipPX7abcxn_hMytiQ22SBS2RU1xCpLP2QKOj83uG=s680-w680-h510",
       "Il Posto":
         "https://lh3.googleusercontent.com/p/AF1QipPYuwEaf_OOO6KyQM0fnDlrYrawzqWqvURJ4mQB=s680-w680-h510",
-      Sisu: "https://lh3.googleusercontent.com/p/AF1QipNtFwqVA57f-RM5BmgKrFl0wsQXYlepe2miA_cv=s680-w680-h510",
     };
 
     blocks.push({
