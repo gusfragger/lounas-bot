@@ -47,8 +47,8 @@ function buildLunchMessage(menus) {
         text: name,
         emoji: true,
       },
-      value: "vote",
-      action_id: name,
+      value: name,
+      action_id: "vote",
     })),
   });
 
