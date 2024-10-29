@@ -47,7 +47,8 @@ function buildLunchMessage(menus) {
         text: name,
         emoji: true,
       },
-      value: `vote_${name}`,
+      value: "vote",
+      resturant: name,
     })),
   });
 
